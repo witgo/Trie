@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 /**
  * Implementation of Trie used for searching words from dictionary with wild card (?) characters
@@ -19,27 +21,20 @@ import java.util.Set;
  */
 public class WordsSearchTrie implements Trie {
 
-    protected Map<Integer, TrieNode> trieMap;
+    protected TrieNode rootNode;
 
     public WordsSearchTrie() {
-        trieMap = new HashMap<Integer, TrieNode>();
+        rootNode = new TrieNode();
+
     }
 
     @Override
     public boolean addString(String wordString) {
-        if (wordString==null || wordString.isEmpty()) {
+        if (wordString == null || wordString.isEmpty()) {
             return false;
         }
         wordString = wordString.toLowerCase();
-        // initialize the root node for the trie with word length
-        TrieNode rootNode = null;
-        if(trieMap.get(wordString.length())==null) {
-            rootNode = new TrieNode();
-            trieMap.put(wordString.length(), rootNode);
-        }
-        else {
-            rootNode = trieMap.get(wordString.length());
-        }
+
         char[] wordCharArr = wordString.toCharArray();
         TrieNode node = rootNode;
         for (char charValue : wordCharArr) {
@@ -68,11 +63,7 @@ public class WordsSearchTrie implements Trie {
             return false;
         }
         wordString = wordString.toLowerCase();
-        TrieNode rootNode = null;
-        if(trieMap.get(wordString.length())==null) {
-            return false;
-        }
-        rootNode = trieMap.get(wordString.length());
+
         char[] wordCharArr = wordString.toCharArray();
         TrieNode node = rootNode;
         for (char charValue : wordCharArr) {
@@ -111,9 +102,8 @@ public class WordsSearchTrie implements Trie {
                 addString(word);
             }
             reader.close();
-        }
-        catch (IOException ioException) {
-  			throw ioException;
+        } catch (IOException ioException) {
+            throw ioException;
         }
     }
 
@@ -138,22 +128,24 @@ public class WordsSearchTrie implements Trie {
             return null;
         }
         wordString = wordString.toLowerCase();
-        TrieNode rootNode = null;
-        if(trieMap.get(wordString.length())==null) {
-            return null;
-        }
-        rootNode = trieMap.get(wordString.length());
+
         char[] wordChars = wordString.toCharArray();
         Map<TrieNode, StringBuffer> trieNodeStringBufferMap = new HashMap<TrieNode, StringBuffer>();
-        for(int index=0; index<wordChars.length; index++) {
+        for (int index = 0; index < wordChars.length; index++) {
             char charValue = wordChars[index];
             trieNodeStringBufferMap = updateTrieNodeMap(index, charValue, rootNode, trieNodeStringBufferMap);
         }
 
         Set<String> wordSet = new HashSet<String>();
-        for (StringBuffer stringBuffer : trieNodeStringBufferMap.values()) {
-            wordSet.add(stringBuffer.toString());
+        Iterator<Entry<TrieNode, StringBuffer>> itor = trieNodeStringBufferMap.entrySet().iterator();
+        while (itor.hasNext()) {
+            Entry<TrieNode, StringBuffer> e = itor.next();
+            if (e.getKey().isFinalChar()) {
+                wordSet.add(e.getValue().toString());
+            }
+
         }
+
 
         return wordSet;
     }
@@ -163,14 +155,14 @@ public class WordsSearchTrie implements Trie {
      * and updates ths StringBuffer with the words formed
      */
     private Map<TrieNode, StringBuffer> updateTrieNodeMap(int index, char charValue, TrieNode rootNode,
-                                                          Map<TrieNode,StringBuffer> trieNodeStringBufferMap) {
-        assert trieNodeStringBufferMap!=null;
-        assert rootNode!=null;
+                                                          Map<TrieNode, StringBuffer> trieNodeStringBufferMap) {
+        assert trieNodeStringBufferMap != null;
+        assert rootNode != null;
         if (index == 0) {
             // assuming the node is rootNode
-            assert rootNode.getCharValue()=='\u0000';
+            assert rootNode.getCharValue() == '\u0000';
             Set<TrieNode> trieChildNodes = getNodeChildren(charValue, rootNode);
-            for (TrieNode node : trieChildNodes){
+            for (TrieNode node : trieChildNodes) {
                 StringBuffer stringBuffer = new StringBuffer();
                 trieNodeStringBufferMap.put(node, stringBuffer.append(node.getCharValue()));
             }
@@ -200,7 +192,7 @@ public class WordsSearchTrie implements Trie {
      * if charValue is '?' it retrieves all the children
      */
     private Set<TrieNode> getNodeChildren(char charValue, TrieNode node) {
-        assert node!=null;
+        assert node != null;
         if (charValue == '?') {
             return node.getChildrenNodes();
         }
@@ -220,7 +212,7 @@ public class WordsSearchTrie implements Trie {
 
         System.out.println("Usage:");
         System.out.println("\tjava -cp Trie.jar com.parthparekh.algorithms.trie.WordsSearchTrie " +
-                                    "<absolute_path_to_wordlist_file> <wildcard_word_to_search>");
+                "<absolute_path_to_wordlist_file> <wildcard_word_to_search>");
         System.out.println("\t(use '?' as wild card character)");
         System.out.println("");
     }
