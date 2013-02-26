@@ -27,7 +27,9 @@ public class WordsSearchTrie implements Trie {
         rootNode = new TrieNode();
 
     }
-
+    public TrieNode getRootNode(){
+        return rootNode;
+    }
     @Override
     public boolean addString(String wordString) {
         if (wordString == null || wordString.isEmpty()) {
